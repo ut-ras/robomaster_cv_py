@@ -14,18 +14,27 @@ import cv2 as cv
 import numpy as np
 import time
 
+color = 'blue'
+
 # Measures how similar two numbers are
 def sim(a, b):
     return min(a, b) / (a + b)
 
-def get_contours(frame, color):
+def get_contours(frame):
     # Apply a red mask to image, apply morphological opening/closing, and find contours of contiguous red areas
     frame_HSV = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
-    mask1 = cv.inRange(frame_HSV, (0, 70, 50), (10, 255, 255))
-    mask2 = cv.inRange(frame_HSV, (170, 70, 50), (180, 255, 255))
+    if color == 'blue':
+        mask1 = cv.inRange(frame_HSV, (100, 50, 50), (130, 255, 255))
+        frame_threshold = mask1
 
-    frame_threshold = mask1 | mask2
+    elif color == 'red':
+        mask1 = cv.inRange(frame_HSV, (0, 70, 50), (10, 255, 255)) # red lower
+        mask2 = cv.inRange(frame_HSV, (170, 70, 50), (180, 255, 255)) # red upper
+        frame_threshold = mask1 | mask2
+
+
+
 
     frame_threshold = cv.erode(frame_threshold, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5)))
     frame_threshold = cv.dilate(frame_threshold, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5)))
@@ -97,7 +106,7 @@ def draw_centers(frame):
     return frame
 
 def main():
-    cap = cv.VideoCapture('IMG_2127.MOV')
+    cap = cv.VideoCapture('IMG_2129.MOV')
 
     while cap.isOpened():
         # start_time = time.time()
