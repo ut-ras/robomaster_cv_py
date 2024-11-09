@@ -38,7 +38,7 @@ def contour_generator(frame):
             new_contour_list.append(contour)
     final_contour_list = list()
     for element in new_contour_list:
-        if cv2.contourArea(element) > 1000 and cv2.isContourConvex(element):
+        if cv2.contourArea(element) > 500 and cv2.isContourConvex(element):
             final_contour_list.append(element)
 
     return final_contour_list
