@@ -110,16 +110,12 @@ def determineLetter(marker):
 
 fid_size = 0.053  # meters
 # TODO fix calibration to setup cameraMatrix
-CALIBRATION_FILENAME = "calibration.json"
-calibration_store = cv2.FileStorage(CALIBRATION_FILENAME, cv2.FILE_STORAGE_READ)
-cameraMatrix = calibration_store.getNode("camera_matrix").mat()
-distCoeffs = calibration_store.getNode("distortion_coefficients").mat()
-calibration_store.release()
+cameraMatrix = np.array([[920.36966325, 0.0, 653.73745053],
+                         [0.0, 920.83604632, 346.05021483], 
+                         [0.0, 0.0, 1.0]], dtype=np.float32)
+distCoeffs = np.array([[0.08520892, -0.09849789, -0.00058441, 0.00072965, -0.47202576]], dtype=np.float32)
 # TODO testing program with hardcoded matrix since calibration session is not working
 # TODO when game ready, dont forget to comment this out
-cameraMatrix = np.array([[7.7105251827351151e+02, 0.0, 6.5933603760981805e+02],
-                         [0.0, 7.7133725528669515e+02, 3.5376687133132259e+02], 
-                         [0.0, 0.0, 1.0]], dtype=np.float32)
 
 def findTranslation(h):
     object_points = np.array([[-fid_size / 2.0, fid_size / 2.0, 0.0],
