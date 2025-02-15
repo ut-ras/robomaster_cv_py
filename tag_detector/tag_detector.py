@@ -5,7 +5,7 @@ import time
 
 def contour_generator(frame):
     test_img1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    test_blur = cv2.GaussianBlur(test_img1, (5, 5), 0)
+    test_blur = cv2.GaussianBlur(test_img1, (7, 7), 0)
     edge = cv2.Canny(test_blur, 75, 175)
     edge1 = copy.copy(edge)
     contour_list = list()
@@ -38,7 +38,7 @@ def contour_generator(frame):
             new_contour_list.append(contour)
     final_contour_list = list()
     for element in new_contour_list:
-        if cv2.contourArea(element) > 500 and cv2.isContourConvex(element):
+        if cv2.contourArea(element) > 700 and cv2.isContourConvex(element):
             final_contour_list.append(element)
 
     return final_contour_list
@@ -117,7 +117,7 @@ distCoeffs = np.array([[-3.72271817e-03, 5.33786890e-01, -4.99625728e-04, -1.651
 # TODO testing program with hardcoded matrix since calibration session is not working
 # TODO when game ready, dont forget to comment this out
 
-def findTranslation(h):
+def findTranslationAndRotation(h):
     object_points = np.array([[-fid_size / 2.0, fid_size / 2.0, 0.0],
                               [fid_size / 2.0, fid_size / 2.0, 0.0],
                               [fid_size / 2.0, -fid_size / 2.0, 0.0],
@@ -127,14 +127,32 @@ def findTranslation(h):
 
     if rvec is not None:
         Rt = np.matrix(cv2.Rodrigues(rvec)[0])
+        yaw, pitch, roll = rotToEul(Rt)
         R = Rt.T
         pose = -R * np.matrix(tvec)
 
         print("CAMERA Position x=" + str(pose[2]) + " y=" + str(pose[0]) + " z=" + str(pose[1]))
-        return pose
+        print("Camera tilt -------   yaw=" + str(yaw) + " pitch=" + str(pitch) + " roll=" + str(roll))
+        return pose, (yaw, pitch, roll)
     
     return "ERROR: Rotation Vector Not Found"
- 
+
+def rotToEul(R):
+    sy = np.sqrt(R[0, 0] ** 2 + R[1, 0] ** 2)
+
+    singular = sy < 1e-6
+    if not singular:
+        yaw = np.arctan2(R[2, 1], R[2, 2])  # Rotation around Z-axis
+        pitch = np.arctan2(-R[2, 0], sy)    # Rotation around Y-axis
+        roll = np.arctan2(R[1, 0], R[0, 0]) # Rotation around X-axis
+    else:
+        yaw = np.arctan2(-R[1, 2], R[1, 1])
+        pitch = np.arctan2(-R[2, 0], sy)
+        roll = 0
+
+    # Convert radians to degrees
+    return np.degrees([yaw, pitch, roll])
+
 cap = cv2.VideoCapture(0)
 
 prev_time = 0
@@ -160,7 +178,7 @@ while(True):
                 tag = cv2.warpPerspective(frame, h, (175, 175))
                 markerColor = determineColor(tag)
                 markerLetter = determineLetter(cv2.cvtColor(tag, cv2.COLOR_BGR2GRAY))
-                tvec = findTranslation(order(c_rez)) # error here
+                tvec, angles = findTranslationAndRotation(order(c_rez)) # error here
                 print("Tag: " + markerLetter + ", Color: " + markerColor)
                 # TODO find the distance of the camera from the tag
                 # TODO determine the coordinate of the specific tag by looking it up through a hard coded map of each tag's map coordinates
