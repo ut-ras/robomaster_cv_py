@@ -6,21 +6,27 @@ import time
 def contour_generator(frame):
     test_img1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     test_blur = cv2.GaussianBlur(test_img1, (7, 7), 0)
-    edge = cv2.Canny(test_blur, 75, 175)
+    median_intensity = np.median(test_blur)
+    lower_thresh = int(max(0, 0.3 * median_intensity))
+    upper_thresh = int(min(255, 1.1 * median_intensity))
+    edge = cv2.Canny(test_blur, lower_thresh, upper_thresh)
+    # cv2.imshow("Edges", edge)
     edge1 = copy.copy(edge)
     contour_list = list()
 
     cnts, h = cv2.findContours(edge1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # cv2.drawContours(frame, cnts, -1, (0, 255, 0), 1)  # Show ALL contours
+    # cv2.imshow("Contours", frame)
     
     # error handling
     
     if h is None:
         return []
 
-    index = list()
-    for hier in h[0]:
-        if hier[3] != -1:
-            index.append(hier[3])
+    index = range(len(h[0]))
+    # for hier in h[0]:
+    #     if hier[3] != -1:
+    #         index.append(hier[3])
 
     # loop over the contours
     for c in index:
@@ -38,7 +44,7 @@ def contour_generator(frame):
             new_contour_list.append(contour)
     final_contour_list = list()
     for element in new_contour_list:
-        if cv2.contourArea(element) > 700 and cv2.isContourConvex(element):
+        if cv2.contourArea(element) > 1000 and cv2.isContourConvex(element):
             final_contour_list.append(element)
 
     return final_contour_list
@@ -135,7 +141,7 @@ def findTranslationAndRotation(h):
         print("Camera tilt -------   yaw=" + str(yaw) + " pitch=" + str(pitch) + " roll=" + str(roll))
         return pose, (yaw, pitch, roll)
     
-    return "ERROR: Rotation Vector Not Found"
+    return "ERROR: TVEC nfound", "ERROR: rvec nfound"
 
 def rotToEul(R):
     sy = np.sqrt(R[0, 0] ** 2 + R[1, 0] ** 2)
