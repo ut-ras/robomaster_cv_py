@@ -23,7 +23,7 @@ def contour_generator(frame):
     if h is None:
         return []
 
-    index = range(len(h[0]))
+    index = range(len(h[0])) # This means all detected contours are returned, rather than checking if they have parent
     # for hier in h[0]:
     #     if hier[3] != -1:
     #         index.append(hier[3])
