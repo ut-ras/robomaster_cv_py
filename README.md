@@ -1,28 +1,17 @@
-# UT RoboMaster CV - Stampede
+# UT RoboMaster CV - Stampede (Tag Detection Branch)
 
-UT Stampede RoboMaster CV Repository
+This branch builds on Eddie's tag detection python code. The goals are as follows:
+1. Reliably and accurately detect only the DJI tags given a video feed
+2. Reliably extract a translation vector and relative position from the detected DJI tag
+3. Reliably obtain a field position and heading for the camera given the absolute tag positions.
 
-Code is written for BeagleBone AI-64
+## Important Notes
 
-For questions about the BeagleBone AI-64, our code, history of development on the BeagleBone AI-64 for a full RoboMaster CV system, and tips on getting started, documentation, etc. please contact Paul Han (email: pauljhan@utexas.edu Discord: @bornhater)
+Currently, I (Aditya Pulipaka) have been trying to perfect this python code. It seems that it came from the official RoboMaster CV repository, but a version written in Python. While there are many components and subfolders within this repository that include armor plate detection and ranging, the main focus of this branch is the tag_detector subfolder and the calibration code. These are the important elements for tag-based localization.
 
-## Code Organization
-
-Our CV system is organized into subsystems that cover various tasks necessary for a full RoboMaster CV system
-
-Subsystems are listed below, in order of being called in *main.py* which is a continuous loop, running our system:
-
-(**NOTE**: Almost none of these tasks are performed inside main.py. These functions abstract out the tasks at hand and are merely called in main.py, making debugging and development significantly easier. Unit tests will be added in the future)
-
-**Image and Depth System** - Retrieving images and depth values (how far away is the armor plate in meters) from RealSense camera through Python wrapper
-
-**Object Detection** - On the retrieved images, detect armor plates through the use of YOLOv5, object detection machine learning model
-
-**Pixel To Point** - Convert image-relative x, y coordinate values (i.e on the image, from which pixel to which pixel is the detected armor plate) to world-relative coordinates values (in x, y, z coordinates, how many meters away is the armor plate)
-
-**Object Log** - Map detected armor plates to specific robots for logging, target selection, and prediction purposes
-
-**Prediction** - Using an unscented Kalman Filter, estimate the next position, current velocity, and current acceleration of the detected robot
-
-**Communication** - Through UART, send x, y, z position, velocity, and acceleration values for ballistics purposes
+**Solved Issues**:
+- White border around tag would often be recognized along with tag. Incorporated another check into the 'determineLetter()' function to check for a white space at '[5,5]', which eliminated the error.
+- Small red square inside tag A would often be detected. This was avoided by increasing the minimum area threshold for contour generation.
+    - Another way to solve this would be by checking for the presence of white color inside the detected contour, but as of now, this alternate strategy has not been necessary.
+- Other square or rectangular shapes in frame would be detected. This behavior has currently been minimized by returning 'false' from the 'determineColor()' function if neither blue nor red is detected and not continuing with the contour if 'false' is returned from 'determineColor()'.
 
