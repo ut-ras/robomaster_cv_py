@@ -11,7 +11,7 @@ def contour_generator(frame):
     lower_thresh = int(max(0, 0.3 * median_intensity))
     upper_thresh = int(min(255, 1.1 * median_intensity))
     edge = cv2.Canny(test_blur, lower_thresh, upper_thresh)
-    # cv2.imshow("Edges", edge)
+    cv2.imshow("Edges", edge)
     edge1 = copy.copy(edge)
     contour_list = list()
 
@@ -34,6 +34,9 @@ def contour_generator(frame):
         peri = cv2.arcLength(cnts[c], True)
         approx = cv2.approxPolyDP(cnts[c], 0.02 * peri, True)
 
+        # TODO: this if statement seems to be narrowing down the contours too much.
+        # TODO: Figure out what exactly the code in this area does, preferably the entire for loop.
+        # Without these if statements, the tag is almost always detected.
         if len(approx) > 4:
             peri1 = cv2.arcLength(cnts[c - 1], True)
             corners = cv2.approxPolyDP(cnts[c - 1], 0.02 * peri1, True)
@@ -41,6 +44,7 @@ def contour_generator(frame):
 
     new_contour_list = list()
     for contour in contour_list:
+        # TODO: this if statement is also problematic we believe.
         if len(contour) == 4:
             new_contour_list.append(contour)
 
@@ -180,27 +184,30 @@ while(True):
     ret, frame = cap.read()
     if ret == True:
         final_contour_list = contour_generator(frame)
+        print(len(final_contour_list))
         for i in range(len(final_contour_list)):
             x, y, w, h = cv2.boundingRect(final_contour_list[i])
             c_rez = final_contour_list[i][:, 0]
             h, _ = cv2.findHomography(order(c_rez), p1, cv2.RANSAC, 2)
 
-            if h is not None:
-                tag = cv2.warpPerspective(frame, h, (175, 175))
-                markerLetter = determineLetter(cv2.cvtColor(tag, cv2.COLOR_BGR2GRAY))
-                markerColor = determineColor(tag)
-                if markerLetter and markerColor:
-                    tvec, angles = findTranslationAndRotation(order(c_rez)) # error here
-                    print("Tag: " + markerLetter + ", Color: " + markerColor)
-                    # TODO find the distance of the camera from the tag
-                    # TODO determine the coordinate of the specific tag by looking it up through a hard coded map of each tag's map coordinates
-                    # TODO determine the angle from the mid point at which the tag exists
-                    # TODO create an algorithm that uses distance, angle, and tag coordinates to determine position
-                    # TODO update low-level positioning data
+            cv2.drawContours(frame, [final_contour_list[i]], -1, (0, 255, 0), 2)
 
-                    cv2.drawContours(frame, [final_contour_list[i]], -1, (0, 255, 0), 2)
-                    cv2.putText(frame, text=str(cv2.contourArea(final_contour_list[i])), org=(x, y-5), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.25, color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
-                    cv2.imshow("Marker", tag)
+            # if h is not None:
+            #     tag = cv2.warpPerspective(frame, h, (175, 175))
+            #     markerLetter = determineLetter(cv2.cvtColor(tag, cv2.COLOR_BGR2GRAY))
+            #     markerColor = determineColor(tag)
+            #     if markerLetter and markerColor:
+            #         tvec, angles = findTranslationAndRotation(order(c_rez)) # error here
+            #         # print("Tag: " + markerLetter + ", Color: " + markerColor)
+            #         # TODO find the distance of the camera from the tag
+            #         # TODO determine the coordinate of the specific tag by looking it up through a hard coded map of each tag's map coordinates
+            #         # TODO determine the angle from the mid point at which the tag exists
+            #         # TODO create an algorithm that uses distance, angle, and tag coordinates to determine position
+            #         # TODO update low-level positioning data
+
+            #         cv2.drawContours(frame, [final_contour_list[i]], -1, (0, 255, 0), 2)
+            #         cv2.putText(frame, text=str(cv2.contourArea(final_contour_list[i])), org=(x, y-5), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.25, color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
+            #         cv2.imshow("Marker", tag)
 
         new_time = time.time()
         fps = 1/(new_time - prev_time)
