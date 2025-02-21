@@ -68,9 +68,9 @@ def order(pts):
     # return the ordered coordinates
     return rect
 
-lowerRed1 = np.array([0, 50, 50])
+lowerRed1 = np.array([0, 150, 150])
 upperRed1 = np.array([10, 255, 255])
-lowerRed2 = np.array([170, 50, 50])
+lowerRed2 = np.array([170, 150, 150])
 upperRed2 = np.array([180, 255, 255])
 
 lowerBlue = np.array([100,80,160])
@@ -105,6 +105,7 @@ def determineLetter(marker):
     cv2.imshow("Cropped", cropped_img)
 
     # [y, x]: [0, 0] = top left pixel
+    # Each pixel seems to be like 25 
     if cropped_img[12, 37] != white:    # Center of pixel at [0, 1]; not white if letter "A"
         return "A"
     elif cropped_img[12, 12] != white:  # Center of pixel at [0, 0]; not white if letter "B"
