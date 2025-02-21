@@ -3,6 +3,7 @@ import cv2
 import copy
 import time
 
+
 def contour_generator(frame):
     test_img1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     test_blur = cv2.GaussianBlur(test_img1, (7, 7), 0)
@@ -42,6 +43,7 @@ def contour_generator(frame):
     for contour in contour_list:
         if len(contour) == 4:
             new_contour_list.append(contour)
+
     final_contour_list = list()
     for element in new_contour_list:
         if cv2.contourArea(element) > 1000 and cv2.isContourConvex(element):
@@ -92,11 +94,13 @@ def determineColor(marker):
         return "red"
     elif np.sum(blueMask) > 0:
         return "blue"
-    return "unknown"
+    return False
 
 def determineLetter(marker):
     ret, img_bw = cv2.threshold(marker, 200, 255, cv2.THRESH_BINARY)
     white = 255
+    if img_bw[5, 5] == white:
+        return False
     cropped_img = img_bw[25:150, 25:150]
     cv2.imshow("Cropped", cropped_img)
 
@@ -182,19 +186,20 @@ while(True):
 
             if h is not None:
                 tag = cv2.warpPerspective(frame, h, (175, 175))
-                markerColor = determineColor(tag)
                 markerLetter = determineLetter(cv2.cvtColor(tag, cv2.COLOR_BGR2GRAY))
-                tvec, angles = findTranslationAndRotation(order(c_rez)) # error here
-                print("Tag: " + markerLetter + ", Color: " + markerColor)
-                # TODO find the distance of the camera from the tag
-                # TODO determine the coordinate of the specific tag by looking it up through a hard coded map of each tag's map coordinates
-                # TODO determine the angle from the mid point at which the tag exists
-                # TODO create an algorithm that uses distance, angle, and tag coordinates to determine position
-                # TODO update low-level positioning data
+                markerColor = determineColor(tag)
+                if markerLetter and markerColor:
+                    tvec, angles = findTranslationAndRotation(order(c_rez)) # error here
+                    print("Tag: " + markerLetter + ", Color: " + markerColor)
+                    # TODO find the distance of the camera from the tag
+                    # TODO determine the coordinate of the specific tag by looking it up through a hard coded map of each tag's map coordinates
+                    # TODO determine the angle from the mid point at which the tag exists
+                    # TODO create an algorithm that uses distance, angle, and tag coordinates to determine position
+                    # TODO update low-level positioning data
 
-                cv2.drawContours(frame, [final_contour_list[i]], -1, (0, 255, 0), 2)
-                cv2.putText(frame, text=str(cv2.contourArea(final_contour_list[i])), org=(x, y-5), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.25, color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
-                cv2.imshow("Marker", tag)
+                    cv2.drawContours(frame, [final_contour_list[i]], -1, (0, 255, 0), 2)
+                    cv2.putText(frame, text=str(cv2.contourArea(final_contour_list[i])), org=(x, y-5), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.25, color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
+                    cv2.imshow("Marker", tag)
 
         new_time = time.time()
         fps = 1/(new_time - prev_time)
