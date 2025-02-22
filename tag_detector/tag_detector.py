@@ -37,6 +37,8 @@ def contour_generator(frame):
         # TODO: this if statement seems to be narrowing down the contours too much.
         # TODO: Figure out what exactly the code in this area does, preferably the entire for loop.
         # Without these if statements, the tag is almost always detected.
+        # another idea: increase the constant multiplied by peri1, as the greater this value is, the more simplified contours become
+        # While this will simplify other shapes into squares, we can filter them out later by color or letter detection.
         if len(approx) > 4:
             peri1 = cv2.arcLength(cnts[c - 1], True)
             corners = cv2.approxPolyDP(cnts[c - 1], 0.02 * peri1, True)
