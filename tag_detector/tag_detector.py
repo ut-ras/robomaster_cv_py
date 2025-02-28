@@ -200,7 +200,7 @@ while(True):
                 markerColor = determineColor(tag)
                 if markerLetter and markerColor:
                     tvec, angles = findTranslationAndRotation(order(c_rez)) # error here
-                    # print("Tag: " + markerLetter + ", Color: " + markerColor)
+                    print("Tag: " + markerLetter + ", Color: " + markerColor)
                     # TODO find the distance of the camera from the tag
                     # TODO determine the coordinate of the specific tag by looking it up through a hard coded map of each tag's map coordinates
                     # TODO determine the angle from the mid point at which the tag exists
