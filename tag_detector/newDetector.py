@@ -111,11 +111,11 @@ def determineLetter(marker):
         return "A"
     elif cropped_img[12, 12] != white and cropped_img[12, 37] == white:  # Center of pixel at [0, 0]; not white if letter "C"
         return "C"
-    elif cropped_img[12, 112] == white: # Center of pixel at [0, 4]; white if letter "E"
+    elif cropped_img[12, 112] == white and cropped_img[37, 37] != white: # Center of pixel at [0, 4]; white if letter "E"
         return "E"
-    elif cropped_img[62, 112] == white: # Center of pixel at [2, 4]; white if letter "D"
+    elif cropped_img[62, 112] == white and cropped_img[12, 112] != white: # Center of pixel at [2, 4]; white if letter "D"
         return "D"
-    elif cropped_img[37, 112] == white and cropped_img[62, 87] == white:
+    elif cropped_img[37, 112] == white and cropped_img[62, 122] != white:
         return "B"                      # Define B as having [1, 4] and [2, 3] as white
     
     return None
