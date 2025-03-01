@@ -39,6 +39,8 @@ def detect_target(frame):
     bounding_box_areaRed = 0
     bounding_box_areaB = 0
     min_area_threshold = 500  # Ignore small detections
+
+    contour_listR = list()
     
     for contourRed in contoursRed:
         epsilon = 0.02 * cv2.arcLength(contourRed, True)
@@ -55,8 +57,11 @@ def detect_target(frame):
             
             approx_cornersRed = approxRed
             bounding_box_areaRed = areaRed
-            break
-    
+            if approx_cornersRed is not None:
+                cv2.drawContours(frame, [approx_cornersRed], -1, (0, 255, 0), 3)
+                contour_listR.append(approx_cornersRed.reshape(4, 1, 2))
+            
+    contour_listB = list()
     for contourB in contoursB:
         epsilon = 0.02 * cv2.arcLength(contourB, True)
         approxB = cv2.approxPolyDP(contourB, epsilon, True)
@@ -72,23 +77,11 @@ def detect_target(frame):
             
             approx_cornersB = approxB
             bounding_box_areaB = areaB
-            break
-
-    if approx_cornersRed is not None:
-        cv2.drawContours(frame, [approx_cornersRed], -1, (0, 255, 0), 3)
-        cornersRed = approx_cornersRed.reshape(4, 1, 2)
+            if approx_cornersB is not None:
+                cv2.drawContours(frame, [approx_cornersB], -1, (0, 255, 0), 3)
+                contour_listB.append(approx_cornersB.reshape(4, 1, 2))
         
-    else:
-        cornersRed = np.array([])
-
-    if approx_cornersB is not None:
-        cv2.drawContours(frame, [approx_cornersB], -1, (0, 255, 0), 3)
-        cornersB = approx_cornersB.reshape(4, 1, 2)
-
-    else:
-        cornersB = np.array([])
-        
-    return frame, cornersRed, cornersB, bounding_box_areaRed, bounding_box_areaB
+    return frame, contour_listR, contour_listB
 
 def order(pts):
     rect = np.zeros((4, 2), dtype="float32")
@@ -195,31 +188,30 @@ def main():
         if not ret:
             break
         
-        frame, cornersR, cornersB, areaR, areaB = detect_target(frame)
-        hR = None
-        hB = None
-        markerLetterR = None
-        if cornersR.size>0:
-            c_rezR = order(cornersR[:, 0])
-            hR, _ = cv2.findHomography(c_rezR, p1, cv2.RANSAC, 2)
+        frame, contoursR, contoursB = detect_target(frame)
+        if len(contoursR):
+            for cornersR in contoursR:
+                c_rezR = order(cornersR[:, 0])
+                hR, _ = cv2.findHomography(c_rezR, p1, cv2.RANSAC, 2)
+                markerLetterR = None
+                if hR is not None:
+                    tagR = cv2.warpPerspective(frame, hR, (175, 175))
+                    markerLetterR = determineLetter(cv2.cvtColor(tagR, cv2.COLOR_BGR2GRAY))
+                    if markerLetterR:
+                        tvecR, anglesR = findTranslationAndRotation(c_rezR)
+                        print("Red Tag: " + markerLetterR)
 
-        if hR is not None:
-            tagR = cv2.warpPerspective(frame, hR, (175, 175))
-            markerLetterR = determineLetter(cv2.cvtColor(tagR, cv2.COLOR_BGR2GRAY))
-            if markerLetterR:
-                tvecR, anglesR = findTranslationAndRotation(c_rezR)
-                print("Red Tag: " + markerLetterR)
-
-        if cornersB.size>0:
-            c_rezB = order(cornersB[:, 0])
-            hB, _ = cv2.findHomography(c_rezB, p1, cv2.RANSAC, 2)
-
-        if hB is not None:
-            tagB = cv2.warpPerspective(frame, hB, (175, 175))
-            markerLetterB = determineLetter(cv2.cvtColor(tagB, cv2.COLOR_BGR2GRAY))
-            if markerLetterB:
-                tvecB, anglesB = findTranslationAndRotation(c_rezB)
-                print("Blue Tag: " + markerLetterB)
+        if len(contoursB):
+            for cornersB in contoursB:
+                c_rezB = order(cornersB[:, 0])
+                hB, _ = cv2.findHomography(c_rezB, p1, cv2.RANSAC, 2)
+                markerLetterB = None
+                if hB is not None:
+                    tagB = cv2.warpPerspective(frame, hB, (175, 175))
+                    markerLetterB = determineLetter(cv2.cvtColor(tagB, cv2.COLOR_BGR2GRAY))
+                    if markerLetterB:
+                        tvecB, anglesB = findTranslationAndRotation(c_rezB)
+                        print("Blue Tag: " + markerLetterB)
 
         # if cornersR is not None and markerLetterR:
         #     print(f"Corners: {cornersR.tolist()} | Area: {areaR}")
