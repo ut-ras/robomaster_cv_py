@@ -24,43 +24,71 @@ def detect_red_target(frame, color):
     red_regions = cv2.bitwise_and(frame, frame, mask=maskRed)
     blue_regions = cv2.bitwise_and(frame, frame, mask = maskBlue)
 
-    gray = None
-    if color:
-        gray = cv2.cvtColor(red_regions, cv2.COLOR_BGR2GRAY)
-    else:
-        gray = cv2.cvtColor(blue_regions, cv2.COLOR_BGR2GRAY)
+    grayRed = cv2.cvtColor(red_regions, cv2.COLOR_BGR2GRAY)
+    grayBlue = cv2.cvtColor(blue_regions, cv2.COLOR_BGR2GRAY)
     
-    edges = cv2.Canny(gray, 50, 150)
-    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    edgesRed = cv2.Canny(grayRed, 50, 150)
+    edgesB = cv2.Canny(grayBlue, 50, 150)
+    contoursRed, _ = cv2.findContours(edgesRed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contoursB, _ = cv2.findContours(edgesB, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contoursRed = sorted(contoursRed, key=cv2.contourArea, reverse=True)
+    contoursB = sorted(contoursB, key=cv2.contourArea, reverse=True)
     
-    approx_corners = None
-    bounding_box_area = 0
+    approx_cornersRed = None
+    approx_cornersB = None
+    bounding_box_areaRed = 0
+    bounding_box_areaB = 0
     min_area_threshold = 500  # Ignore small detections
     
-    for contour in contours:
-        epsilon = 0.02 * cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, epsilon, True)
+    for contourRed in contoursRed:
+        epsilon = 0.02 * cv2.arcLength(contourRed, True)
+        approxRed = cv2.approxPolyDP(contourRed, epsilon, True)
         
-        if len(approx) == 4:
-            area = cv2.contourArea(approx)
-            if area < min_area_threshold:
+        if len(approxRed) == 4:
+            areaRed = cv2.contourArea(approxRed)
+            if areaRed < min_area_threshold:
                 continue  # Ignore small contours
             
             # Convexity check
-            if not cv2.isContourConvex(approx):
+            if not cv2.isContourConvex(approxRed):
                 continue
             
-            approx_corners = approx
-            bounding_box_area = area
+            approx_cornersRed = approxRed
+            bounding_box_areaRed = areaRed
             break
     
-    if approx_corners is not None:
-        cv2.drawContours(frame, [approx_corners], -1, (0, 255, 0), 3)
-        corners = approx_corners.reshape(4, 1, 2)
-        return frame, corners, bounding_box_area
-    
-    return frame, np.array([]), 0
+    for contourB in contoursB:
+        epsilon = 0.02 * cv2.arcLength(contourB, True)
+        approxB = cv2.approxPolyDP(contourB, epsilon, True)
+        
+        if len(approxB) == 4:
+            areaB = cv2.contourArea(approxB)
+            if areaB < min_area_threshold:
+                continue  # Ignore small contours
+            
+            # Convexity check
+            if not cv2.isContourConvex(approxB):
+                continue
+            
+            approx_cornersB = approxB
+            bounding_box_areaB = areaB
+            break
+
+    if approx_cornersRed is not None:
+        cv2.drawContours(frame, [approx_cornersRed], -1, (0, 255, 0), 3)
+        cornersRed = approx_cornersRed.reshape(4, 1, 2)
+        
+    else:
+        cornersRed = np.array([])
+
+    if approx_cornersB is not None:
+        cv2.drawContours(frame, [approx_cornersB], -1, (0, 255, 0), 3)
+        cornersB = approx_cornersB.reshape(4, 1, 2)
+
+    else:
+        cornersB = np.array([])
+        
+    return frame, cornersRed, cornersB, bounding_box_areaRed, bounding_box_areaB
 
 def order(pts):
     rect = np.zeros((4, 2), dtype="float32")
@@ -167,27 +195,36 @@ def main():
         if not ret:
             break
         
-        frame, corners, area = detect_red_target(frame, 1)
-        h = None
-        markerLetter = None
-        if corners.size>0:
-            x, y, w, h = cv2.boundingRect(corners)
-            c_rez = order(corners[:, 0])
-            h, _ = cv2.findHomography(c_rez, p1, cv2.RANSAC, 2)
+        frame, cornersR, cornersB, areaR, areaB = detect_red_target(frame, 1)
+        hR = None
+        hB = None
+        markerLetterR = None
+        if cornersR.size>0:
+            c_rezR = order(cornersR[:, 0])
+            hR, _ = cv2.findHomography(c_rezR, p1, cv2.RANSAC, 2)
 
-        if h is not None:
-            tag = cv2.warpPerspective(frame, h, (175, 175))
-            markerLetter = determineLetter(cv2.cvtColor(tag, cv2.COLOR_BGR2GRAY))
-            if markerLetter:
-                tvec, angles = findTranslationAndRotation(c_rez)
-                print("Tag: " + markerLetter)
+        if hR is not None:
+            tagR = cv2.warpPerspective(frame, hR, (175, 175))
+            markerLetterR = determineLetter(cv2.cvtColor(tagR, cv2.COLOR_BGR2GRAY))
+            if markerLetterR:
+                tvecR, anglesR = findTranslationAndRotation(c_rezR)
+                print("Red Tag: " + markerLetterR)
 
+        if cornersB.size>0:
+            c_rezB = order(cornersB[:, 0])
+            hB, _ = cv2.findHomography(c_rezB, p1, cv2.RANSAC, 2)
 
-        
-        if corners is not None and markerLetter:
-            print(f"Corners: {corners.tolist()} | Area: {area}")
-        else:
-            print("No valid red tag detected.")
+        if hB is not None:
+            tagB = cv2.warpPerspective(frame, hB, (175, 175))
+            markerLetterB = determineLetter(cv2.cvtColor(tagB, cv2.COLOR_BGR2GRAY))
+            if markerLetterB:
+                tvecB, anglesB = findTranslationAndRotation(c_rezB)
+                print("Blue Tag: " + markerLetterB)
+
+        # if cornersR is not None and markerLetterR:
+        #     print(f"Corners: {cornersR.tolist()} | Area: {areaR}")
+        # else:
+        #     print("No valid red tag detected.")
         
         cv2.imshow("Webcam Detection", frame)
         
