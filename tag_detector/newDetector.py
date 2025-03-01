@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def detect_red_target(frame, color):
+def detect_target(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     
     # Define red color range in HSV
@@ -195,7 +195,7 @@ def main():
         if not ret:
             break
         
-        frame, cornersR, cornersB, areaR, areaB = detect_red_target(frame, 1)
+        frame, cornersR, cornersB, areaR, areaB = detect_target(frame)
         hR = None
         hB = None
         markerLetterR = None
