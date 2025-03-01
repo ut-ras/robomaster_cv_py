@@ -9,11 +9,9 @@ This branch builds on Eddie's tag detection python code. The goals are as follow
 
 Currently, I have been trying to perfect this python code. It seems that it came from the official RoboMaster CV repository, but a version written in Python. While there are many components and subfolders within this repository that include armor plate detection and ranging, the main focus of this branch is the tag_detector subfolder and the calibration code. These are the important elements for tag-based localization.
 
-**Solved Issues**:
-- White border around tag would often be recognized along with tag. Incorporated another check into the 'determineLetter()' function to check for a white space at '[5,5]', which eliminated the error.
-- Small red square inside tag A would often be detected. This was avoided by increasing the minimum area threshold for contour generation.
-    - Another way to solve this would be by checking for the presence of white color inside the detected contour. *WE WILL IMPLEMENT THIS SOON*
-- Other square or rectangular shapes in frame would be detected. This behavior has currently been minimized by returning 'false' from the 'determineColor()' function if neither blue nor red is detected and not continuing with the contour if 'false' is returned from 'determineColor()'.
+**Function**
+'newDetector.py' will detect multiple red and/or DJI tags at once and print their colors, letters, and relative positions.
 
-**Persistent Issues**:
-- When 'tag_detector' runs, the tag is not always detected. This is likely because of a few filters that narrow down the detected contours too aggressively. We will work on understanding these couple lines and tweaking them to make the detection more consistent.
+**Calibration**
+
+The camera matrix in tag_detector.py and newDetector.py is for my 2022 macbook air. If recalibration is desired, use 'basicCalib.py' with photos taken on your camera placed in the 'laptop calibration' directory instead of what's there currently. Change the *inner dimensions* of the chessboard at the beginning of 'basicCalib.py' if needed.
