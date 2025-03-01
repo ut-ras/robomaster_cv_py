@@ -10,7 +10,7 @@ def detect_target(frame):
     lower_red2 = np.array([170, 120, 70])
     upper_red2 = np.array([180, 255, 255])
 
-    lowerBlue = np.array([100,80,160])
+    lowerBlue = np.array([90,80,160])
     upperBlue = np.array([120,255,255])
     
     # Create masks to detect red color
@@ -26,9 +26,11 @@ def detect_target(frame):
 
     grayRed = cv2.cvtColor(red_regions, cv2.COLOR_BGR2GRAY)
     grayBlue = cv2.cvtColor(blue_regions, cv2.COLOR_BGR2GRAY)
+    cv2.imshow("blue", maskBlue)
     
     edgesRed = cv2.Canny(grayRed, 50, 150)
     edgesB = cv2.Canny(grayBlue, 50, 150)
+    cv2.imshow("edges", edgesB)
     contoursRed, _ = cv2.findContours(edgesRed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contoursB, _ = cv2.findContours(edgesB, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contoursRed = sorted(contoursRed, key=cv2.contourArea, reverse=True)
