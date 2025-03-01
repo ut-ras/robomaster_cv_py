@@ -36,12 +36,10 @@ def detect_target(frame):
     
     approx_cornersRed = None
     approx_cornersB = None
-    bounding_box_areaRed = 0
-    bounding_box_areaB = 0
     min_area_threshold = 500  # Ignore small detections
 
+    # Do edge filtering for both Red and Blue contours, return all contours that fit criteria
     contour_listR = list()
-    
     for contourRed in contoursRed:
         epsilon = 0.02 * cv2.arcLength(contourRed, True)
         approxRed = cv2.approxPolyDP(contourRed, epsilon, True)
@@ -56,7 +54,6 @@ def detect_target(frame):
                 continue
             
             approx_cornersRed = approxRed
-            bounding_box_areaRed = areaRed
             if approx_cornersRed is not None:
                 cv2.drawContours(frame, [approx_cornersRed], -1, (0, 255, 0), 3)
                 contour_listR.append(approx_cornersRed.reshape(4, 1, 2))
@@ -76,7 +73,6 @@ def detect_target(frame):
                 continue
             
             approx_cornersB = approxB
-            bounding_box_areaB = areaB
             if approx_cornersB is not None:
                 cv2.drawContours(frame, [approx_cornersB], -1, (0, 255, 0), 3)
                 contour_listB.append(approx_cornersB.reshape(4, 1, 2))
@@ -118,7 +114,7 @@ def determineLetter(marker):
     elif cropped_img[62, 112] == white: # Center of pixel at [2, 4]; white if letter "D"
         return "D"
     elif cropped_img[37, 112] == white and cropped_img[62, 87] == white:
-        return "B"                      # Must be "B" if none of the above
+        return "B"                      # Define B as having [1, 4] and [2, 3] as white
     
     return None
 
@@ -145,9 +141,6 @@ def findTranslationAndRotation(h):
         yaw, pitch, roll = rotToEul(Rt)
         R = Rt.T
         pose = -R * np.matrix(tvec)
-
-        print("CAMERA Position x=" + str(pose[2]) + " y=" + str(pose[0]) + " z=" + str(pose[1]))
-        print("Camera tilt -------   yaw=" + str(yaw) + " pitch=" + str(pitch) + " roll=" + str(roll))
         return pose, (yaw, pitch, roll)
     
     return "ERROR: TVEC nfound", "ERROR: rvec nfound"
@@ -200,6 +193,8 @@ def main():
                     if markerLetterR:
                         tvecR, anglesR = findTranslationAndRotation(c_rezR)
                         print("Red Tag: " + markerLetterR)
+                        print("CAMERA Position x=" + str(tvecR[2]) + " y=" + str(tvecR[0]) + " z=" + str(tvecR[1]))
+                        print("Camera tilt -------   yaw=" + str(anglesR[0]) + " pitch=" + str(anglesR[1]) + " roll=" + str(anglesR[2]))
 
         if len(contoursB):
             for cornersB in contoursB:
@@ -212,11 +207,8 @@ def main():
                     if markerLetterB:
                         tvecB, anglesB = findTranslationAndRotation(c_rezB)
                         print("Blue Tag: " + markerLetterB)
-
-        # if cornersR is not None and markerLetterR:
-        #     print(f"Corners: {cornersR.tolist()} | Area: {areaR}")
-        # else:
-        #     print("No valid red tag detected.")
+                        print("CAMERA Position x=" + str(tvecB[2]) + " y=" + str(tvecB[0]) + " z=" + str(tvecB[1]))
+                        print("Camera tilt -------   yaw=" + str(anglesB[0]) + " pitch=" + str(anglesB[1]) + " roll=" + str(anglesB[2]))
         
         cv2.imshow("Webcam Detection", frame)
         
