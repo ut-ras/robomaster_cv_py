@@ -1,5 +1,28 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+
+ax.set_xlim([-1, 1])  # testing with -1 to 1 meter range for each axis
+ax.set_ylim([-1, 1])
+ax.set_zlim([-1, 1])
+
+point, = ax.plot([], [], [], 'ro', markersize=8)
+orig, = ax.plot([], [], [], 'bo', markersize=8)
+
+def update_3d_plot(tvec):
+    if tvec is not None:
+        x = tvec[2].item()
+        y = tvec[0].item()
+        z = tvec[1].item()
+        point.set_data([x], [y])
+        point.set_3d_properties([z])
+        orig.set_data([0], [0])
+        orig.set_3d_properties([0])
+        plt.draw()
+        plt.pause(0.01)
 
 def detect_target(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -197,6 +220,8 @@ def main():
                         print("Red Tag: " + markerLetterR)
                         print("CAMERA Position x=" + str(tvecR[2]) + " y=" + str(tvecR[0]) + " z=" + str(tvecR[1]))
                         print("Camera tilt -------   yaw=" + str(anglesR[0]) + " pitch=" + str(anglesR[1]) + " roll=" + str(anglesR[2]))
+
+                        update_3d_plot(tvecR)
 
         if len(contoursB):
             for cornersB in contoursB:
