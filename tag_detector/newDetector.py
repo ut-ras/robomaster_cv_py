@@ -49,11 +49,11 @@ def detect_target(frame):
 
     grayRed = cv2.cvtColor(red_regions, cv2.COLOR_BGR2GRAY)
     grayBlue = cv2.cvtColor(blue_regions, cv2.COLOR_BGR2GRAY)
-    cv2.imshow("blue", maskBlue)
+    # cv2.imshow("blue", maskBlue)
     
     edgesRed = cv2.Canny(grayRed, 50, 150)
     edgesB = cv2.Canny(grayBlue, 50, 150)
-    cv2.imshow("edges", edgesB)
+    # cv2.imshow("edges", edgesB)
     contoursRed, _ = cv2.findContours(edgesRed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contoursB, _ = cv2.findContours(edgesB, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contoursRed = sorted(contoursRed, key=cv2.contourArea, reverse=True)
@@ -126,19 +126,23 @@ def determineLetter(marker):
     if img_bw[5, 5] == white:
         return False
     cropped_img = img_bw[25:150, 25:150]
-    cv2.imshow("Cropped", cropped_img)
 
     # [y, x]: [0, 0] = top left pixel
     # Each pixel seems to be like 25 
     if cropped_img[12, 37] != white and cropped_img[12, 62] == white:    # Center of pixel at [0, 1]; not white if letter "A"
+        cv2.imshow("Cropped", cropped_img)
         return "A"
     elif cropped_img[12, 12] != white and cropped_img[12, 37] == white:  # Center of pixel at [0, 0]; not white if letter "C"
+        cv2.imshow("Cropped", cropped_img)
         return "C"
     elif cropped_img[12, 112] == white and cropped_img[37, 37] != white: # Center of pixel at [0, 4]; white if letter "E"
+        cv2.imshow("Cropped", cropped_img)
         return "E"
     elif cropped_img[62, 112] == white and cropped_img[12, 112] != white: # Center of pixel at [2, 4]; white if letter "D"
+        cv2.imshow("Cropped", cropped_img)
         return "D"
     elif cropped_img[37, 112] == white and cropped_img[62, 122] != white:
+        cv2.imshow("Cropped", cropped_img)
         return "B"                      # Define B as having [1, 4] and [2, 3] as white
     
     return None
