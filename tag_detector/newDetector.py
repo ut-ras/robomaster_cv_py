@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
-ax.set_xlim([-1, 1])  # testing with -1 to 1 meter range for each axis
-ax.set_ylim([-1, 1])
-ax.set_zlim([-1, 1])
+ax.set_xlim([-1000, 1000])  # testing with -1 to 1 meter range for each axis
+ax.set_ylim([-1000, 1000])
+ax.set_zlim([-1000, 1000])
 
 point, = ax.plot([], [], [], 'ro', markersize=8)
 orig, = ax.plot([], [], [], 'bo', markersize=8)
@@ -147,7 +147,7 @@ def determineLetter(marker):
     
     return None
 
-fid_size = 0.053  # meters
+fid_size = 53  # centimeters
 # TODO fix calibration to setup cameraMatrix
 cameraMatrix = np.array([[1.25649815e+03, 0.0, 7.12996774e+02],
                          [0.0, 1.25820533e+03, 4.69551858e+02], 
@@ -156,21 +156,21 @@ distCoeffs = np.array([[-3.72271817e-03, 5.33786890e-01, -4.99625728e-04, -1.651
 # TODO testing program with hardcoded matrix since calibration session is not working
 # TODO when game ready, dont forget to comment this out
 
-def findTranslationAndRotation(h):
+def findTranslationAndRotation(image_pts):
     object_points = np.array([[-fid_size / 2.0, fid_size / 2.0, 0.0],
                               [fid_size / 2.0, fid_size / 2.0, 0.0],
                               [fid_size / 2.0, -fid_size / 2.0, 0.0],
                               [-fid_size / 2.0, -fid_size / 2.0, 0.0]], dtype=np.float32)
     #TODO: make calibration dynamic somehow
-    _, rvec, tvec = cv2.solvePnP(object_points, np.array(h, dtype=np.float32), cameraMatrix, distCoeffs, flags=cv2.SOLVEPNP_IPPE_SQUARE)
-
+    _, rvec, tvec = cv2.solvePnP(object_points, np.array(image_pts, dtype=np.float32), 
+                                 cameraMatrix, distCoeffs) #removed IPPE_SQUARE flag
     if rvec is not None:
         Rt = np.matrix(cv2.Rodrigues(rvec)[0])
         # TODO: remove all the yaw, pitch roll stuff at some point
         yaw, pitch, roll = rotToEul(Rt)
         R = Rt.T
         pose = -R * np.matrix(tvec)
-        return pose, (yaw, pitch, roll)
+        return tvec, (yaw, pitch, roll) #returning raw tvec rather than pose for testing.
     
     return "ERROR: TVEC nfound", "ERROR: rvec nfound"
 
