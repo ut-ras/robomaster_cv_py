@@ -10,7 +10,7 @@
 # https://stackoverflow.com/questions/38064777/use-waitkey-in-order-pause-and-play-video
 # https://docs.opencv.org/4.x/de/d62/tutorial_bounding_rotated_ellipses.html
 # https://www.geeksforgeeks.org/python-opencv-cv2-puttext-method/
-
+#
 import cv2 as cv
 import numpy as np
 import math
