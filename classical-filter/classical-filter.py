@@ -16,6 +16,9 @@ import numpy as np
 import math
 import time
 import os
+import sys
+import sort 
+
 
 
 color = 'blue'
@@ -176,7 +179,8 @@ def main():
         print(detections)
 
         cv.imshow('frame', frame)
-
+        
+        sys.stdout.flush()
         # writer.write(frame)
         # cv.imwrite(output, frame)
 
