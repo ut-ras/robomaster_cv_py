@@ -15,6 +15,8 @@ import cv2 as cv
 import numpy as np
 import math
 import time
+import os
+
 
 color = 'blue'
 
@@ -61,7 +63,7 @@ def get_contours(frame, color):
 
     return contours
 
-def draw_centers(frame, color):
+def draw_centers(frame, color, detections: list[tuple[float, float]]):
     contours = get_contours(frame, color)
 
     # Compute rotated bounding box for each contour and store in `bboxes`
@@ -140,6 +142,9 @@ def draw_centers(frame, color):
                 and y_diff < y_thresh * (length1 + length2) / 2 \
                 and (angle_diff < angle_thresh or angle_diff > 180 - angle_thresh):
                 cv.circle(frame, (round((bbox1[0][0] + bbox2[0][0]) / 2), round((bbox1[0][1] + bbox2[0][1]) / 2)), 10, (255, 0, 255), -1)
+
+                detections.append((round((bbox1[0][0] + bbox2[0][0]) / 2), round((bbox1[0][1] + bbox2[0][1]) / 2)))
+                
             cv.putText(frame, f'w: {sim(width1, width2):.2f}, l: {sim(length1, length2):.2f}, a1: {angle1:.2f}, a2: {angle2:.2f}, {angle_diff:.2f}', (round((bbox1[0][0] + bbox2[0][0]) / 2), round((bbox1[0][1] + bbox2[0][1]) / 2)), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv.LINE_AA)
 
             # Debugging
@@ -147,16 +152,19 @@ def draw_centers(frame, color):
             # print(f'l --- {i}: {length1}, {j}: {length2}, sim: {sim(length1, length2)}')
             # print(f'a --- {i}: {angle1}, {j}: {angle2}, diff: {angle_diff}')
 
+            # print((round((bbox1[0][0] + bbox2[0][0]) / 2), round((bbox1[0][1] + bbox2[0][1]) / 2)))
+
     # Reference square to see size of `thresh`
     # cv.rectangle(frame, (50, 50), (50 + thresh, 50 + thresh), (255, 0, 255), 1)
 
     return frame
 
 def main():
-    cap = cv.VideoCapture('tests/test1.mp4')
+    cap = cv.VideoCapture('tracking.mp4')
 
     while cap.isOpened():
         # start_time = time.time()
+        detections = []
 
         ret, frame = cap.read()
 
@@ -164,7 +172,8 @@ def main():
             print('Failed to read frame. Exiting...')
             break
 
-        frame = draw_centers(frame, 'blue')
+        frame = draw_centers(frame, 'blue', detections)
+        print(detections)
 
         cv.imshow('frame', frame)
 
