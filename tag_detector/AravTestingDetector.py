@@ -1,12 +1,13 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 TAG_SIZE = 5.0  # cm
 
 def get_camera_matrix(cap):
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    focal_length = 980  # estimate
+    focal_length = 980
     cx = width / 2
     cy = height / 2
     camera_matrix = np.array([
@@ -63,6 +64,33 @@ def invert_pose(rvec, tvec):
     rvec_inv, _ = cv2.Rodrigues(R_inv)
     return rvec_inv, tvec_inv
 
+def live_plot_setup():
+    plt.ion()
+    fig = plt.figure(figsize=(7, 5))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_xlabel('X (cm)')
+    ax.set_ylabel('Y (cm)')
+    ax.set_zlabel('Z (cm)')
+    ax.set_title('Live Camera Positions Relative to Tag')
+    ax.set_box_aspect([1, 1, 1])
+    return fig, ax
+
+def update_live_plot(ax, camera_positions):
+    ax.cla()
+    ax.scatter(0, 0, 0, c='red', s=60, label='Tag (Origin)')
+
+    cam_pos = np.array(camera_positions)
+    ax.plot(cam_pos[:, 0], cam_pos[:, 1], cam_pos[:, 2], c='blue', marker='o', label='Camera Path')
+
+    ax.set_xlabel('X (cm)')
+    ax.set_ylabel('Y (cm)')
+    ax.set_zlabel('Z (cm)')
+    ax.legend()
+    ax.set_box_aspect([1, 1, 1])
+    ax.view_init(elev=20, azim=-60)
+    plt.draw()
+    plt.pause(0.001)
+
 def main():
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
@@ -71,6 +99,10 @@ def main():
 
     camera_matrix, dist_coeffs = get_camera_matrix(cap)
     object_points = get_object_points(TAG_SIZE)
+    camera_positions = []
+
+    fig, ax = live_plot_setup()
+    update_counter = 0
 
     while True:
         ret, frame = cap.read()
@@ -83,16 +115,30 @@ def main():
             success, rvec, tvec = cv2.solvePnP(object_points, corners, camera_matrix, dist_coeffs)
 
             if success:
-                # Position of tag relative to camera
-                tx, ty, tz = tvec.flatten()
-                print(f"[Tag in camera frame] x={tx:.2f}, y={ty:.2f}, z={tz:.2f} cm")
+                projected_points, _ = cv2.projectPoints(object_points, rvec, tvec, camera_matrix, dist_coeffs)
+                error = np.linalg.norm(corners - projected_points.squeeze(), axis=1).mean()
 
-                # Position of camera relative to tag (for localization)
-                rvec_inv, tvec_inv = invert_pose(rvec, tvec)
-                cx, cy, cz = tvec_inv.flatten()
-                print(f"[Camera in tag frame] x={cx:.2f}, y={cy:.2f}, z={cz:.2f} cm\n")
+                if error < 5.0:  # pixels
+                    rvec_inv, tvec_inv = invert_pose(rvec, tvec)
+                    cx, cy, cz = tvec_inv.flatten()
 
-                draw_axes(frame, rvec, tvec, camera_matrix, dist_coeffs, corners[0])
+                    if camera_positions:
+                        last = np.array(camera_positions[-1])
+                        dist = np.linalg.norm(np.array([cx, cy, cz]) - last)
+                        if dist > 20:  # cm
+                            print("⛔ Position jump too large — ignoring")
+                            continue
+
+                    camera_positions.append([cx, cy, cz])
+                    print(f"[Camera in tag frame] x={cx:.2f}, y={cy:.2f}, z={cz:.2f} cm")
+                    draw_axes(frame, rvec, tvec, camera_matrix, dist_coeffs, corners[0])
+
+                    # Live update every few frames
+                    update_counter += 1
+                    if update_counter % 5 == 0:
+                        update_live_plot(ax, camera_positions)
+                else:
+                    print(f"⚠️ Reprojection error too high ({error:.2f}px) — ignoring")
 
         cv2.imshow("Tag Localization", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -100,6 +146,8 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+    plt.ioff()
+    plt.show()
 
 if __name__ == "__main__":
     main()
