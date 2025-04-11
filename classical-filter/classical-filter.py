@@ -21,7 +21,7 @@ import sort
 
 
 
-color = 'blue'
+color = 'red'
 
 # Measures how similar two numbers are
 def sim(a, b):
@@ -163,33 +163,40 @@ def draw_centers(frame, color, detections: list[tuple[float, float]]):
     return frame
 
 def main():
-    cap = cv.VideoCapture('tracking.mp4')
+    cap = cv.VideoCapture('tracking2.mp4')
+    tracker = sort.Sort()
 
     while cap.isOpened():
-        # start_time = time.time()
         detections = []
 
         ret, frame = cap.read()
-
         if not ret:
             print('Failed to read frame. Exiting...')
             break
 
-        frame = draw_centers(frame, 'blue', detections)
-        print(detections)
+        frame = draw_centers(frame, color, detections)
+
+        detection_boxes = []
+        for (x, y) in detections:
+            detection_boxes.append([x - 50, y - 50, x + 50, y + 50, 0.3])
+
+        detection_boxes = np.array(detection_boxes)
+        if (detection_boxes.size != 0):
+            tracked_objects = tracker.update(detection_boxes)
+        else:
+            tracked_objects = tracker.update(np.empty((0, 5)))
+
+        frame_number = int(cap.get(cv.CAP_PROP_POS_FRAMES)) # From chatgpt
+        print(f"\nFrame {frame_number}:")
+
+        for track in tracked_objects:
+            x1, y1, x2, y2, track_id = track.astype(int)
+            print(f"ID {track_id}: Position ({x1 + 50}, {y1 + 50})")
 
         cv.imshow('frame', frame)
-        
         sys.stdout.flush()
-        # writer.write(frame)
-        # cv.imwrite(output, frame)
-
-        # end_time = time.time()
-        # print(end_time - start_time)
-
         if cv.waitKey(50) == ord('q'):
             break
-
     cap.release()
     cv.destroyAllWindows()
 
