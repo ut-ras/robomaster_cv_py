@@ -214,7 +214,7 @@ class Sort(object):
     Params:
       dets - a numpy array of detections in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
     Requires: this method must be called once for each frame even with empty detections (use np.empty((0, 5)) for frames without detections).
-    Returns the a similar array, where the last column is the object ID.
+    Returns the a similar array, where the last column is the object ID, And predicted points
 
     NOTE: The number of objects returned may differ from the number of detections provided.
     """
@@ -223,11 +223,14 @@ class Sort(object):
     trks = np.zeros((len(self.trackers), 5))
     to_del = []
     ret = []
+    
     for t, trk in enumerate(trks):
       pos = self.trackers[t].predict()[0]
+      print(f"Pos 0: {np.round(pos[0] + 50)}, Pos 1: {np.round(pos[1] + 50)}")
       trk[:] = [pos[0], pos[1], pos[2], pos[3], 0]
       if np.any(np.isnan(pos)):
         to_del.append(t)
+
     trks = np.ma.compress_rows(np.ma.masked_invalid(trks))
     for t in reversed(to_del):
       self.trackers.pop(t)
@@ -251,8 +254,8 @@ class Sort(object):
         if(trk.time_since_update > self.max_age):
           self.trackers.pop(i)
     if(len(ret)>0):
-      return np.concatenate(ret)
-    return np.empty((0,5))
+      return np.concatenate(ret), trks
+    return np.empty((0,5)), np.empty((0,5))
 
 def parse_args():
     """Parse input arguments."""
@@ -311,7 +314,7 @@ if __name__ == '__main__':
         #   plt.title(seq + ' Tracked Targets')
 
         start_time = time.time()
-        trackers = mot_tracker.update(dets)
+        trackers, predicted = mot_tracker.update(dets)
         cycle_time = time.time() - start_time
         total_time += cycle_time
 

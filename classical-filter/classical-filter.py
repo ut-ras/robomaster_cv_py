@@ -76,7 +76,7 @@ def draw_centers(frame, color, detections: list[tuple[float, float]]):
         bboxes.append(bbox)
         bbox_points = cv.boxPoints(bbox)
         bbox_points = np.intp(bbox_points)
-        frame = cv.drawContours(frame, [bbox_points], -1, (0, 255, 0), 2)
+        # frame = cv.drawContours(frame, [bbox_points], -1, (0, 255, 0), 2)
 
     thresh = 20
     width_sim_thresh, length_sim_thresh, y_thresh, angle_thresh = 0.1, 0.3, 0.15, 15
@@ -146,9 +146,10 @@ def draw_centers(frame, color, detections: list[tuple[float, float]]):
                 and (angle_diff < angle_thresh or angle_diff > 180 - angle_thresh):
                 cv.circle(frame, (round((bbox1[0][0] + bbox2[0][0]) / 2), round((bbox1[0][1] + bbox2[0][1]) / 2)), 10, (255, 0, 255), -1)
 
+
                 detections.append((round((bbox1[0][0] + bbox2[0][0]) / 2), round((bbox1[0][1] + bbox2[0][1]) / 2)))
                 
-            cv.putText(frame, f'w: {sim(width1, width2):.2f}, l: {sim(length1, length2):.2f}, a1: {angle1:.2f}, a2: {angle2:.2f}, {angle_diff:.2f}', (round((bbox1[0][0] + bbox2[0][0]) / 2), round((bbox1[0][1] + bbox2[0][1]) / 2)), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv.LINE_AA)
+            # cv.putText(frame, f'w: {sim(width1, width2):.2f}, l: {sim(length1, length2):.2f}, a1: {angle1:.2f}, a2: {angle2:.2f}, {angle_diff:.2f}', (round((bbox1[0][0] + bbox2[0][0]) / 2), round((bbox1[0][1] + bbox2[0][1]) / 2)), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv.LINE_AA)
 
             # Debugging
             # print(f'w --- {i}: {width1}, {j}: {width2}, sim: {sim(width1, width2)}')
@@ -182,16 +183,30 @@ def main():
 
         detection_boxes = np.array(detection_boxes)
         if (detection_boxes.size != 0):
-            tracked_objects = tracker.update(detection_boxes)
+            tracked_objects, predicted_points = tracker.update(detection_boxes)
         else:
-            tracked_objects = tracker.update(np.empty((0, 5)))
+            tracked_objects, predicted_points = tracker.update(np.empty((0, 5)))
 
         frame_number = int(cap.get(cv.CAP_PROP_POS_FRAMES)) # From chatgpt
-        print(f"\nFrame {frame_number}:")
+        # print(f"\nFrame {frame_number}:")
+
+        # draw predicted points
+        if (predicted_points.size != 0):
+            for point in predicted_points:
+                x1, y1, x2, y2, point_id = point.astype(int)
+                cv.circle(frame, (x1 + 50, y1 + 50), 10, (0, 255, 0), -1)
 
         for track in tracked_objects:
             x1, y1, x2, y2, track_id = track.astype(int)
             print(f"ID {track_id}: Position ({x1 + 50}, {y1 + 50})")
+            cv.putText(frame, 
+                           f"{track_id}", 
+                           (x1 + 50, y1 + 20), 
+                           cv.FONT_HERSHEY_SIMPLEX, 
+                           1, 
+                           (255, 255, 255), 
+                           1, cv.LINE_AA)
+
 
         cv.imshow('frame', frame)
         sys.stdout.flush()
