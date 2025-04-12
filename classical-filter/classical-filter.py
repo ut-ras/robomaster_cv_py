@@ -164,8 +164,9 @@ def draw_centers(frame, color, detections: list[tuple[float, float]]):
     return frame
 
 def main():
-    cap = cv.VideoCapture('tracking2.mp4')
+    cap = cv.VideoCapture('tracking.mp4')
     tracker = sort.Sort()
+    size = 50
 
     while cap.isOpened():
         detections = []
@@ -179,7 +180,7 @@ def main():
 
         detection_boxes = []
         for (x, y) in detections:
-            detection_boxes.append([x - 50, y - 50, x + 50, y + 50, 0.3])
+            detection_boxes.append([x - size, y - size, x + size, y + size, 0.3])
 
         detection_boxes = np.array(detection_boxes)
         if (detection_boxes.size != 0):
@@ -194,11 +195,11 @@ def main():
         if (predicted_points.size != 0):
             for point in predicted_points:
                 x1, y1, x2, y2, point_id = point.astype(int)
-                cv.circle(frame, (x1 + 50, y1 + 50), 10, (0, 255, 0), -1)
+                cv.circle(frame, (x1 + size, y1 + size), 10, (0, 255, 0), -1)
 
         for track in tracked_objects:
             x1, y1, x2, y2, track_id = track.astype(int)
-            print(f"ID {track_id}: Position ({x1 + 50}, {y1 + 50})")
+            print(f"ID {track_id}: Position ({x1 + size}, {y1 + size})")
             cv.putText(frame, 
                            f"{track_id}", 
                            (x1 + 50, y1 + 20), 
