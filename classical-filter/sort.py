@@ -104,7 +104,7 @@ class KalmanBoxTracker(object):
     """
     #define constant velocity model
     self.kf = KalmanFilter(dim_x=7, dim_z=4) 
-    dt = 2
+    dt = 3
     self.kf.F = np.array([[1,0,0,0,dt,0,0],
                           [0,1,0,0,0,dt,0],
                           [0,0,1,0,0,0,dt],
@@ -114,7 +114,7 @@ class KalmanBoxTracker(object):
                           [0,0,0,0,0,0,1]])
     self.kf.H = np.array([[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0]])
 
-    self.kf.R *= 0.5 #og value = 10
+    self.kf.R *= 2.0 #og value = 10
     self.kf.P[4:,4:] *= 1000.
     self.kf.P *= 10.
     self.kf.Q[-1,-1] *= 0.2 #og value = 0.01
@@ -145,6 +145,12 @@ class KalmanBoxTracker(object):
     """
     if((self.kf.x[6]+self.kf.x[2])<=0):
       self.kf.x[6] *= 0.0
+    #self.kf.predict()
+    # ——— AGGRESSIVE BOOST: amplify velocity before projecting ———
+    boost = 1.15     # try 1.2, 1.5, 2.0… tune to your video dynamics
+    self.kf.x[4] *= boost   # _x_ velocity
+    self.kf.x[5] *= boost   # _y_ velocity
+    self.kf.x[6] *= boost   # scale/aspect‑ratio velocity
     self.kf.predict()
     self.age += 1
     if(self.time_since_update>0):

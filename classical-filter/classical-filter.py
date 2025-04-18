@@ -21,7 +21,15 @@ import sort
 
 
 
-color = 'blue'
+try:
+    color = sys.argv[1]
+    if (color == "red"):
+        video_name = "tracking2.mp4"
+    else:
+        video_name = "tracking1.mp4"
+except IndexError:
+    color = 'red'
+    video_name = "tracking2.mp4"
 
 # Measures how similar two numbers are
 def sim(a, b):
@@ -164,7 +172,7 @@ def draw_centers(frame, color, detections: list[tuple[float, float]]):
     return frame
 
 def main():
-    cap = cv.VideoCapture('tracking2.mp4')
+    cap = cv.VideoCapture(video_name)
     tracker = sort.Sort()
     size = 50
 
