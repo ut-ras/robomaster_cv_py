@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
-ax.set_xlim([-1000, 1000])  # testing with -1 to 1 meter range for each axis
-ax.set_ylim([-1000, 1000])
-ax.set_zlim([-1000, 1000])
+ax.set_xlim([-500, 500])  # testing with -1 to 1 meter range for each axis
+ax.set_ylim([-500, 500])
+ax.set_zlim([-500, 500])
 
 point, = ax.plot([], [], [], 'ro', markersize=8)
 orig, = ax.plot([], [], [], 'bo', markersize=8)
@@ -147,13 +147,13 @@ def determineLetter(marker):
     
     return None
 
-fid_size = 53  # centimeters
+fid_size = 100  # centimeters
 # TODO fix calibration to setup cameraMatrix
 cameraMatrix = np.array([[1.18666112e+03, 0.0, 7.22383627e+02],
                          [0.0, 1.19064020e+03, 4.94566994e+02], 
                          [0.0, 0.0, 1.0]], dtype=np.float32)
-distCoeffs = np.array([[6.14540360e-02, 1.81624947e-01, -3.12285935e-04,
-                        1.11668024e-03, -9.74003624e-01]], dtype=np.float32)
+distCoeffs = np.array([[0, 0, 0,
+                        0, 0]], dtype=np.float32)
 # TODO testing program with hardcoded matrix since calibration session is not working
 # TODO when game ready, dont forget to comment this out
 
@@ -164,7 +164,7 @@ def findTranslationAndRotation(image_pts):
                               [-fid_size / 2.0, -fid_size / 2.0, 0.0]], dtype=np.float32)
     #TODO: make calibration dynamic somehow
     _, rvec, tvec = cv2.solvePnP(object_points, np.array(image_pts, dtype=np.float32), 
-                                 cameraMatrix, distCoeffs) #removed IPPE_SQUARE flag
+                                 cameraMatrix, distCoeffs, flags=cv2.SOLVEPNP_IPPE) #removed IPPE_SQUARE flag
     if rvec is not None:
         Rt = np.matrix(cv2.Rodrigues(rvec)[0])
         # TODO: remove all the yaw, pitch roll stuff at some point
