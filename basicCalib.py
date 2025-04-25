@@ -36,7 +36,7 @@ prev_img_shape = None
 # in a given directory. Since no path is 
 # specified, it will take current directory 
 # jpg files alone 
-images = glob.glob('laptop calibration/*.jpg')
+images = glob.glob('realsense calibration/*.jpg')
 for filename in images: 
 	image = cv2.imread(filename) 
 	grayColor = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) 

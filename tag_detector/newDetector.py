@@ -149,10 +149,11 @@ def determineLetter(marker):
 
 fid_size = 53  # centimeters
 # TODO fix calibration to setup cameraMatrix
-cameraMatrix = np.array([[1.25649815e+03, 0.0, 7.12996774e+02],
-                         [0.0, 1.25820533e+03, 4.69551858e+02], 
+cameraMatrix = np.array([[1.18666112e+03, 0.0, 7.22383627e+02],
+                         [0.0, 1.19064020e+03, 4.94566994e+02], 
                          [0.0, 0.0, 1.0]], dtype=np.float32)
-distCoeffs = np.array([[-3.72271817e-03, 5.33786890e-01, -4.99625728e-04, -1.65101232e-03,-1.78505927e+00]], dtype=np.float32)
+distCoeffs = np.array([[6.14540360e-02, 1.81624947e-01, -3.12285935e-04,
+                        1.11668024e-03, -9.74003624e-01]], dtype=np.float32)
 # TODO testing program with hardcoded matrix since calibration session is not working
 # TODO when game ready, dont forget to comment this out
 

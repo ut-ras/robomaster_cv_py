@@ -4,6 +4,12 @@ import matplotlib.pyplot as plt
 
 TAG_SIZE = 5.0  # cm
 
+cameraMatrix = np.array([[1.18666112e+03, 0.0, 7.22383627e+02],
+                         [0.0, 1.19064020e+03, 4.94566994e+02], 
+                         [0.0, 0.0, 1.0]], dtype=np.float32)
+distCoeffs = np.array([[6.14540360e-02, 1.81624947e-01, -3.12285935e-04,
+                        1.11668024e-03, -9.74003624e-01]], dtype=np.float32)
+
 def get_camera_matrix(cap):
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
