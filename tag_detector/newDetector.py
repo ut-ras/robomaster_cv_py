@@ -147,7 +147,7 @@ def determineLetter(marker):
     
     return None
 
-fid_size = 100  # centimeters
+fid_size = 100  # mm
 # TODO fix calibration to setup cameraMatrix
 cameraMatrix = np.array([[1.18666112e+03, 0.0, 7.22383627e+02],
                          [0.0, 1.19064020e+03, 4.94566994e+02], 
