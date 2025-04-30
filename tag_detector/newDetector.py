@@ -1,6 +1,20 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+# ^: 0, ->: 1, v: 2, <-: 3 for direction
+#first element of each list is x, second is y, third is direction.
+TAG_POSES = {
+    "A_RD" : np.array([500,7999,2]),
+    "B_RD" : np.array([0,500,1]),
+    "C_RD" : np.array([2999,3500,3]),
+    "D_RD" : np.array([3171,5500,1]),
+    "E_RD" : np.array([5350,7999,2]),
+    "A_BL" : np.array([11500,0,0]),
+    "B_BL" : np.array([12000,7500,3]),
+    "C_BL" : np.array([9001,4500,1]),
+    "D_BL" : np.array([8829.3,2500,3]),
+    "E_BL" : np.array([6750,0,0])
+}
 
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
