@@ -2,18 +2,19 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 # ^: 0, ->: 1, v: 2, <-: 3 for direction
+#nvm, counterclockwise angle in degrees from <-
 #first element of each list is x, second is y, third is direction.
 TAG_POSES = {
-    "A_RD" : np.array([500,7999,2]),
-    "B_RD" : np.array([0,500,1]),
-    "C_RD" : np.array([2999,3500,3]),
-    "D_RD" : np.array([3171,5500,1]),
-    "E_RD" : np.array([5350,7999,2]),
-    "A_BL" : np.array([11500,0,0]),
-    "B_BL" : np.array([12000,7500,3]),
-    "C_BL" : np.array([9001,4500,1]),
-    "D_BL" : np.array([8829.3,2500,3]),
-    "E_BL" : np.array([6750,0,0])
+    "A_RD" : np.array([500,7999,90]),
+    "B_RD" : np.array([0,500,180]),
+    "C_RD" : np.array([2999,3500,0]),
+    "D_RD" : np.array([3171,5500,180]),
+    "E_RD" : np.array([5350,7999,90]),
+    "A_BL" : np.array([11500,0,270]),
+    "B_BL" : np.array([12000,7500,0]),
+    "C_BL" : np.array([9001,4500,180]),
+    "D_BL" : np.array([8829.3,2500,0]),
+    "E_BL" : np.array([6750,0,270])
 }
 
 fig = plt.figure()
@@ -239,7 +240,20 @@ def main():
                         print("Red Tag: " + markerLetterR)
                         print("CAMERA Position x=" + str(tvecR[2]) + " y=" + str(tvecR[0]) + " z=" + str(tvecR[1]))
                         print("Camera tilt -------   yaw=" + str(anglesR[0]) + " pitch=" + str(anglesR[1]) + " roll=" + str(anglesR[2]))
-
+                        tagmapname=markerLetterR+"_RD"
+                        print("2D Pose Angle -----   "+str(TAG_POSES[tagmapname][2] + anglesR[1])+ " degrees")
+                        if TAG_POSES[tagmapname][2] == 0:
+                          print("Field Position ----   x=" + str(TAG_POSES[tagmapname][0]-tvecR[2]) + " y="
+                                 + str(TAG_POSES[tagmapname][1]+tvecR[0]))
+                        elif TAG_POSES[tagmapname][2] == 90:
+                          print("Field Position ----   x=" + str(TAG_POSES[tagmapname][0]-tvecR[0]) + " y="
+                                 + str(TAG_POSES[tagmapname][1]-tvecR[2]))
+                        elif TAG_POSES[tagmapname][2] == 180:
+                          print("Field Position ----   x=" + str(TAG_POSES[tagmapname][0]+tvecR[2]) + " y="
+                                 + str(TAG_POSES[tagmapname][1]-tvecR[0]))
+                        else:
+                          print("Field Position ----   x=" + str(TAG_POSES[tagmapname][0]+tvecR[0]) + " y="
+                                 + str(TAG_POSES[tagmapname][1]+tvecR[2]))
                         update_3d_plot(tvecR)
 
         if len(contoursB):
@@ -255,7 +269,23 @@ def main():
                         print("Blue Tag: " + markerLetterB)
                         print("CAMERA Position x=" + str(tvecB[2]) + " y=" + str(tvecB[0]) + " z=" + str(tvecB[1]))
                         print("Camera tilt -------   yaw=" + str(anglesB[0]) + " pitch=" + str(anglesB[1]) + " roll=" + str(anglesB[2]))
-        
+                        tagmapname=markerLetterB+"_BL"
+                        print("2D Pose Angle -----   "+str(TAG_POSES[tagmapname][2] + anglesB[1])+ " degrees")
+                        if TAG_POSES[tagmapname][2] == 0:
+                          print("Field Position ----   x=" + str(TAG_POSES[tagmapname][0]-tvecB[2]) + " y="
+                                 + str(TAG_POSES[tagmapname][1]+tvecB[0]))
+                        elif TAG_POSES[tagmapname][2] == 90:
+                          print("Field Position ----   x=" + str(TAG_POSES[tagmapname][0]-tvecB[0]) + " y="
+                                 + str(TAG_POSES[tagmapname][1]-tvecB[2]))
+                        elif TAG_POSES[tagmapname][2] == 180:
+                          print("Field Position ----   x=" + str(TAG_POSES[tagmapname][0]+tvecB[2]) + " y="
+                                 + str(TAG_POSES[tagmapname][1]-tvecB[0]))
+                        else:
+                          print("Field Position ----   x=" + str(TAG_POSES[tagmapname][0]+tvecB[0]) + " y="
+                                 + str(TAG_POSES[tagmapname][1]+tvecB[2]))
+                        
+                        update_3d_plot(tvecB)
+                        
         cv2.imshow("Webcam Detection", frame)
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
